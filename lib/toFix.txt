@@ -1,0 +1,13 @@
+
+
+
+
+6.06.2023
+ 1. Fix playButton on Player Overlay
+ 2. Recently Player fix position .
+
+2.07.2023
+ 1. PlayerOverlay must update data by streams
+1. Font of Title Medium (Gold) Gradient
+2. LibraryMusicItem gradient of shadow learn more and fix
+3. Find out why Image of Music Bar not appear
