@@ -26,13 +26,15 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
 
   final eqBloc = EqualizerBloc(AudioProvider.player.androidAudioSessionId);
 
+  Future<bool> onWillPop() async {
+    Navigator.pop(context , eqBloc.enabledEQ);
+    return await Future.value(eqBloc.enabledEQ);
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        Navigator.of(context).pop(eqBloc.enabledEQ);
-        return true;
-      },
+      onWillPop: () => onWillPop(),
       child: Scaffold(
         body: SafeArea(
           child: BlocProvider(
@@ -97,7 +99,7 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
       afterTitle: [
         const Spacer(),
         InkWell(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => onWillPop(),
           child: Image.asset(
             "assets/icons/close.png",
             height: dynSize,

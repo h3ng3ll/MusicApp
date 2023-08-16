@@ -13,6 +13,7 @@ import 'package:music_app/src/data/provider/LibraryProvider.dart';
 import 'package:music_app/src/domain/model/song/LocalSong.dart';
 import 'package:music_app/src/domain/model/song/NetworkSong.dart';
 import 'package:music_app/src/domain/repository/Song.dart';
+import 'package:music_app/src/local/services/LocalStorageService.dart';
 import 'package:music_app/src/presentation/UI/Screens/Home/ShareScreen/MusicAudioPlayerScreen/widget/SeekBar.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -58,28 +59,23 @@ class AudioProvider extends ChangeNotifier {
   }
 
   AudioProvider(BuildContext context){
-
-    EqualizerFlutter.init(player.androidAudioSessionId ?? 0);
-    EqualizerFlutter.setEnabled(true);
-
+    init();
     streamHandling();
   }
-
+  void init() async {
+    EqualizerFlutter.init(player.androidAudioSessionId ?? 0);
+    _enabledEQ = await LocalStorageService.restoreEqualizerStatus() ?? false;
+    EqualizerFlutter.setEnabled(_enabledEQ);
+  }
   void streamHandling () {
     player.playerStateStream.listen((event) {
       if(isPlaying != event.playing){
         isPlaying  = event.playing;
-
         notifyListeners();
-      }
-
-      if(event.processingState == ProcessingState.ready){
-
       }
       else if (event.processingState == ProcessingState.completed){
         player.seekToNext();
       }
-      // else if (event.processingState == ProcessingState)
     });
 
     player.currentIndexStream.listen((id) {
