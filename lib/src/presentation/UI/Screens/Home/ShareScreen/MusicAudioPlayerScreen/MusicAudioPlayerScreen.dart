@@ -37,7 +37,7 @@ class _MusicAudioPlayerScreenState extends State<MusicAudioPlayerScreen> {
 
   late final AudioPlayerBloc bloc ;
 
-  void onWillPop() {
+  void onWillPop(BuildContext context) {
     bloc.add(ClosePlayerEvent());
 
     /// can be only 1 opened dialog i.e The 'Share Song' dialog
@@ -50,7 +50,7 @@ class _MusicAudioPlayerScreenState extends State<MusicAudioPlayerScreen> {
 
     /// if some song is playing now  then
     /// dialog should be opened to monitor it .
-    if(isPlaying) OverlayService().playerOverlay(context, song: widget.song);
+    if(isPlaying) OverlayService().playerOverlay(context, song: bloc.song);
   }
 
   @override
@@ -67,31 +67,25 @@ class _MusicAudioPlayerScreenState extends State<MusicAudioPlayerScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: WillPopScope(
-          child: BlocProvider(
-            create: (context) => bloc,
-            child: BlocBuilder(
-                bloc: bloc,
-                builder: (context, state) {
-                  if (state is AudioPlayerLoadedState) {
-                    return buildUI(state.song);
-                  }
-                  if (state is AudioPlayerLoadingState) {
-                    return const Center(child: CircularProgressIndicator(),);
-                  }
-                  else if (state is AudioPlayerInitialState) {
-                    Future.delayed(const Duration(seconds: 3));
-                    return const Center(child: CircularProgressIndicator(),);
-                  }
-                  throw Exception("Unhandled Player building");
+        child: BlocProvider(
+          create: (context) => bloc,
+          child: BlocBuilder(
+              bloc: bloc,
+              builder: (context, state) {
+                if (state is AudioPlayerLoadedState) {
+                  return buildUI(state.song);
                 }
-              // ),
-            ),
+                if (state is AudioPlayerLoadingState) {
+                  return const Center(child: CircularProgressIndicator(),);
+                }
+                else if (state is AudioPlayerInitialState) {
+                  Future.delayed(const Duration(seconds: 3));
+                  return const Center(child: CircularProgressIndicator(),);
+                }
+                throw Exception("Unhandled Player building");
+              }
+            // ),
           ),
-          onWillPop: () async {
-            onWillPop();
-            return true;
-          },
         ),
       ),
     );
@@ -99,53 +93,59 @@ class _MusicAudioPlayerScreenState extends State<MusicAudioPlayerScreen> {
 
   Widget buildUI(Song song,) {
     final size = s.size(context);
-    return Column(
-      children: [
-        SizedBox(height: size.height * 0.01,),
+    return WillPopScope(
+      onWillPop: () async {
+        onWillPop(context);
+        return true;
+      },
+      child: Column(
+        children: [
+          SizedBox(height: size.height * 0.01,),
 
-        /// \/                    O+
-        /// \/                   000 
-        ///                            
-        buildBackButtonAndAddUser(size, song),
+          /// \/                    O+
+          /// \/                   000
+          ///
+          buildBackButtonAndAddUser(size, song , context),
 
-        Expanded(
-            flex: 30,
-            child: buildIconPreview(size, song)
-        ),
+          Expanded(
+              flex: 30,
+              child: buildIconPreview(size, song)
+          ),
 
-        const Spacer(),
+          const Spacer(),
 
 
-        /// DragonForce       ####
-        ///   Fallen World    ####
-        Expanded(
-          flex: 10,
-            child: buildMeta(size, song)
-        ),
+          /// DragonForce       ####
+          ///   Fallen World    ####
+          Expanded(
+            flex: 10,
+              child: buildMeta(size, song)
+          ),
 
-        const Spacer(flex: 2),
+          const Spacer(flex: 2),
 
-        /// 00:00 ------------ 04:08
-        buildSongDuration(size,),
-        const Spacer(flex: 2),
+          /// 00:00 ------------ 04:08
+          buildSongDuration(size,),
+          const Spacer(flex: 2),
 
-        /// 
-        /// Shuffle Previous Play Next Repeat
-        /// 
-        Expanded(flex:  4 , child: MusicActionsPanel(song: song,)),
+          ///
+          /// Shuffle Previous Play Next Repeat
+          ///
+          Expanded(flex:  4 , child: MusicActionsPanel(song: song,)),
 
-        const Spacer(flex: 2),
+          const Spacer(flex: 2),
 
-        MultiProvider(providers: [Provider<Song>.value(value: song),], child: const MusicPlayerTabBarWidget(),),
+          MultiProvider(providers: [Provider<Song>.value(value: song),], child: const MusicPlayerTabBarWidget(),),
 
-      ],
+        ],
+      ),
     );
   }
 
 
 
 
-  Widget buildBackButtonAndAddUser(Size size, Song song) {
+  Widget buildBackButtonAndAddUser(Size size, Song song , BuildContext context) {
     final dynSize = size.height * 0.07;
 
     return Row(
@@ -153,7 +153,7 @@ class _MusicAudioPlayerScreenState extends State<MusicAudioPlayerScreen> {
       children: [
         InkWell(
           onTap: () {
-            onWillPop();
+            onWillPop(context);
             Navigator.pop(context);
           },
           child: BuildAssetIcon(

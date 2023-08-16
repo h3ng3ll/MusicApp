@@ -21,15 +21,6 @@ class MusicPlayerTabBarWidget extends StatefulWidget {
 class _MusicPlayerTabBarWidgetState extends State<MusicPlayerTabBarWidget> {
 
 
-  late bool enabledEQ ;
-
-
-  @override
-  void initState() {
-    super.initState();
-    enabledEQ = Provider.of<AudioProvider>(context , listen: false).enabledEQ;
-  }
-
   @override
   Widget build(BuildContext context) {
 
@@ -41,25 +32,6 @@ class _MusicPlayerTabBarWidgetState extends State<MusicPlayerTabBarWidget> {
         ]
     );
   }
-
-
-  // List<PersistentBottomNavBarItem> navBarItems () {
-  //
-  //   return [
-  //     PersistentBottomNavBarItem(
-  //         icon: const BuildAssetIcon( iconName: "like2",),
-  //         inactiveIcon:  const BuildAssetIcon( iconName: "like",)
-  //     ),
-  //     PersistentBottomNavBarItem(
-  //       icon: const BuildAssetIcon( iconName: "equalizer",),
-  //       inactiveIcon: const BuildAssetIcon( iconName: "equalizer",),
-  //     ),
-  //     PersistentBottomNavBarItem(
-  //       icon: const BuildAssetIcon( iconName: "share",),
-  //       inactiveIcon:  const BuildAssetIcon( iconName: "share2",),
-  //     ),
-  //   ];
-  // }
 
   Widget buildSplashLine () => Align(
     alignment: const Alignment(0.0 , -1),
@@ -82,10 +54,10 @@ class _MusicPlayerTabBarWidgetState extends State<MusicPlayerTabBarWidget> {
 
   Widget buildEqualizerTab(BuildContext context) {
     final audioProvider = Provider.of<AudioProvider>(context , listen:  false ) ;
-
+    bool pastEnabledEQ =  audioProvider.enabledEQ;
     return InkWell(
         onTap: () async {
-          final bool enabled = await  PersistentNavBarNavigator.pushDynamicScreen(
+          final bool? futureEnabled = await  PersistentNavBarNavigator.pushDynamicScreen(
               context, screen: MaterialPageRoute(
                   builder: (context) =>    ChangeNotifierProvider.value(
                     value: audioProvider,
@@ -93,12 +65,13 @@ class _MusicPlayerTabBarWidgetState extends State<MusicPlayerTabBarWidget> {
                   ),
               )
           );
-          enabledEQ = enabled;
-           // ignore: use_build_context_synchronously
-           Provider.of<AudioProvider>(context , listen: false).enabledEQ = enabledEQ;
-          setState(() { });
+
+          if(futureEnabled != null && pastEnabledEQ != futureEnabled ) {
+            audioProvider.enabledEQ = futureEnabled;
+            setState(() { });
+          }
         },
-        child: BuildAssetIcon(iconName: enabledEQ ? "equalizerFilled" : "equalizer" )
+        child: BuildAssetIcon(iconName: pastEnabledEQ ? "equalizerFilled" : "equalizer" )
     );
   }
 

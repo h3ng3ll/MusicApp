@@ -38,6 +38,8 @@ class _LoginFormScreenState extends State<LoginFormScreen> with SingleTickerProv
   final emailOrUserNameController = TextEditingController();
   String password = "";
 
+  bool nowAuthorizing = false;
+
   @override
   void initState() {
     super.initState();
@@ -55,9 +57,17 @@ class _LoginFormScreenState extends State<LoginFormScreen> with SingleTickerProv
   void logInToAccount (BuildContext context) async {
     if(formKey.currentState!.validate()){
 
+      if(nowAuthorizing) {
+        return ;
+      } else {
+        nowAuthorizing = !nowAuthorizing;
+      }
+
       final emailRegExp = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
       closeKeyboard();
+
       try {
+
         if(emailRegExp.hasMatch(emailOrUserNameController.text)){
           await FirebaseAuthService.logInUser(
               password: password ,
@@ -75,6 +85,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> with SingleTickerProv
         Navigator.pushReplacementNamed(context, AppRoutes.home);
 
       } on Exception catch (e) {
+        nowAuthorizing = false;
        late String message ;
         if(e is FirebaseException) {
           message = e.message?? e.code;

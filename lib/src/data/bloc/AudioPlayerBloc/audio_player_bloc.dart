@@ -20,13 +20,16 @@ class AudioPlayerBloc extends Bloc<AudioPlayerEvent, AudioPlayerState> {
   
   final List<Song> songs;
   final player = AudioProvider.player;
-  final Song song  ;
+   Song song  ;
 
   AudioPlayerBloc(this.songs, this.song) : super(AudioPlayerInitialState(songs , AudioProvider.player , song)) {
 
 
     final subscription = player.currentIndexStream.listen((int? index) {
-      if(index != null)  emit(AudioPlayerLoadedState(songs[index]));
+      if(index != null){
+        emit(AudioPlayerLoadedState(songs[index]));
+        song = songs[index];
+      }
     });
 
     on<ClosePlayerEvent>((event , emit) async => await subscription.cancel());
